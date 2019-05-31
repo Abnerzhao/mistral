@@ -24,6 +24,7 @@ import shutil
 import socket
 import string
 import sys
+import six
 import tempfile
 import threading
 
@@ -217,11 +218,11 @@ def cut_dict(d, length=100):
 
     for key, value in d.items():
         k = str(key)
-        is_str = isinstance(value, str)
+        is_str = isinstance(value, six.text_type)
         if is_str:
-            v = str(value)
-        else:
             v = str(value.encode('utf-8'))
+	else:
+            v = str(value)
 
         # Processing key.
         new_len = len(k)
