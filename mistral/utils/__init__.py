@@ -39,7 +39,6 @@ import random
 
 from mistral import exceptions as exc
 
-
 # Thread local storage.
 _th_loc_storage = threading.local()
 
@@ -115,8 +114,8 @@ def log_exec(logger, level=logging.DEBUG):
     def _decorator(func):
         @functools.wraps(func)
         def _logged(*args, **kw):
-            params_repr = ("[args=%s, kw=%s]" % (str(args), str(kw))
-                           if args or kw else "")
+            params_repr = ("[args=%s, kw=%s]" %
+                           (str(args), str(kw)) if args or kw else "")
 
             func_repr = ("Called method [name=%s, doc='%s', params=%s]" %
                          (func.__name__, func.__doc__, params_repr))
@@ -183,8 +182,10 @@ def update_dict(left, right):
 def get_file_list(directory):
     base_path = pkg.resource_filename("mistral", directory)
 
-    return [path.join(base_path, f) for f in os.listdir(base_path)
-            if path.isfile(path.join(base_path, f))]
+    return [
+        path.join(base_path, f) for f in os.listdir(base_path)
+        if path.isfile(path.join(base_path, f))
+    ]
 
 
 def cut_dict(d, length=100):
@@ -218,11 +219,10 @@ def cut_dict(d, length=100):
 
     for key, value in d.items():
         k = str(key)
-        is_str = isinstance(value, six.text_type)
-        if is_str:
-            v = str(value.encode('utf-8'))
-	else:
+        try:
             v = str(value)
+        except UnicodeEncodeError:
+            v = str(value.encode('utf-8'))
 
         # Processing key.
         new_len = len(k)
@@ -230,7 +230,7 @@ def cut_dict(d, length=100):
         is_str = isinstance(key, str)
 
         if is_str:
-            new_len += 2    # Account for the quotation marks
+            new_len += 2  # Account for the quotation marks
 
         if 0 <= length <= new_len + len(res):
             res += "'%s" % k if is_str else k
@@ -444,16 +444,16 @@ def tempdir(**kwargs):
             shutil.rmtree(tmpdir)
         except OSError as e:
             raise exc.DataAccessException(
-                "Failed to delete temp dir %(dir)s (reason: %(reason)s)" %
-                {'dir': tmpdir, 'reason': e}
-            )
+                "Failed to delete temp dir %(dir)s (reason: %(reason)s)" % {
+                    'dir': tmpdir,
+                    'reason': e
+                })
 
 
 def save_text_to(text, file_path, overwrite=False):
     if os.path.exists(file_path) and not overwrite:
         raise exc.DataAccessException(
-            "Cannot save data to file. File %s already exists."
-        )
+            "Cannot save data to file. File %s already exists.")
 
     with open(file_path, 'w') as f:
         f.write(text)
@@ -469,10 +469,14 @@ def generate_key_pair(key_length=2048):
         args = [
             'ssh-keygen',
             '-q',  # quiet
-            '-N', '',  # w/o passphrase
-            '-t', 'rsa',  # create key of rsa type
-            '-f', keyfile,  # filename of the key file
-            '-C', 'Generated-by-Mistral'  # key comment
+            '-N',
+            '',  # w/o passphrase
+            '-t',
+            'rsa',  # create key of rsa type
+            '-f',
+            keyfile,  # filename of the key file
+            '-C',
+            'Generated-by-Mistral'  # key comment
         ]
 
         if key_length is not None:
@@ -482,16 +486,14 @@ def generate_key_pair(key_length=2048):
 
         if not os.path.exists(keyfile):
             raise exc.DataAccessException(
-                "Private key file hasn't been created"
-            )
+                "Private key file hasn't been created")
 
         private_key = open(keyfile).read()
         public_key_path = keyfile + '.pub'
 
         if not os.path.exists(public_key_path):
             raise exc.DataAccessException(
-                "Public key file hasn't been created"
-            )
+                "Public key file hasn't been created")
         public_key = open(public_key_path).read()
 
         return private_key, public_key
@@ -543,7 +545,6 @@ def generate_string(length):
     :param length: the length of returned string
     """
 
-    return ''.join(random.choice(
-        string.ascii_uppercase + string.digits)
-        for _ in range(length)
-    )
+    return ''.join(
+        random.choice(string.ascii_uppercase + string.digits)
+        for _ in range(length))
